@@ -22,6 +22,14 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'github_id',
+        'github_username',
+        'github_token',
+        'github_refresh_token',
+        'github_token_expires_at',
+        'github_scopes',
+        'setup_completed',
+        'setup_step',
     ];
 
     /**
@@ -34,6 +42,8 @@ class User extends Authenticatable
         'two_factor_secret',
         'two_factor_recovery_codes',
         'remember_token',
+        'github_token',
+        'github_refresh_token',
     ];
 
     /**
@@ -47,6 +57,28 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'github_token_expires_at' => 'datetime',
+            'github_scopes' => 'array',
+            'setup_completed' => 'boolean',
+            'setup_step' => 'integer',
         ];
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Repository, $this>
+     */
+    public function repositories(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Repository::class);
+    }
+
+    public function isGithubConnected(): bool
+    {
+        return $this->github_id !== null && $this->github_token !== null;
+    }
+
+    public function hasCompletedSetup(): bool
+    {
+        return $this->setup_completed;
     }
 }

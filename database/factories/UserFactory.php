@@ -56,4 +56,30 @@ class UserFactory extends Factory
             'two_factor_confirmed_at' => now(),
         ]);
     }
+
+    /**
+     * Indicate that the user has connected their GitHub account.
+     */
+    public function withGithub(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'github_id' => fake()->unique()->numberBetween(1000000, 99999999),
+            'github_username' => fake()->userName(),
+            'github_token' => encrypt('gho_'.Str::random(36)),
+            'github_refresh_token' => null,
+            'github_token_expires_at' => null,
+            'github_scopes' => ['repo', 'read:user'],
+        ]);
+    }
+
+    /**
+     * Indicate that the user has completed setup.
+     */
+    public function setupCompleted(): static
+    {
+        return $this->withGithub()->state(fn (array $attributes) => [
+            'setup_completed' => true,
+            'setup_step' => 5,
+        ]);
+    }
 }
