@@ -27,3 +27,8 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Claude Code
+.ai/
+.claude/settings.local.json
+.claude/RALPH_PROGRESS.md
