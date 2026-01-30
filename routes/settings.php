@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\LaraLedgerSettingsController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
@@ -28,4 +29,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
+
+    // LaraLedger-specific settings
+    Route::get('settings/laraledger', [LaraLedgerSettingsController::class, 'index'])
+        ->name('laraledger.settings');
+    Route::put('settings/laraledger/ai-provider', [LaraLedgerSettingsController::class, 'updateAiProvider'])
+        ->name('laraledger.settings.ai-provider');
+    Route::put('settings/laraledger/generation-provider', [LaraLedgerSettingsController::class, 'updateGenerationProvider'])
+        ->name('laraledger.settings.generation-provider');
+    Route::put('settings/laraledger/analysis-defaults', [LaraLedgerSettingsController::class, 'updateAnalysisDefaults'])
+        ->name('laraledger.settings.analysis-defaults');
+    Route::post('settings/laraledger/test-ai', [LaraLedgerSettingsController::class, 'testAiProvider'])
+        ->name('laraledger.settings.test-ai');
+    Route::get('settings/laraledger/export', [LaraLedgerSettingsController::class, 'exportData'])
+        ->name('laraledger.settings.export');
+    Route::delete('settings/laraledger/history', [LaraLedgerSettingsController::class, 'clearHistory'])
+        ->name('laraledger.settings.clear-history');
 });
