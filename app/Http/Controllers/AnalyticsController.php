@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Release;
-use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -143,7 +143,7 @@ class AnalyticsController extends Controller
      *
      * @return array<int, array{date: string, rate: float, count: int}>
      */
-    private function getAcceptanceOverTime($baseQuery, ?Carbon $startDate, string $range): array
+    private function getAcceptanceOverTime($baseQuery, ?CarbonInterface $startDate, string $range): array
     {
         $groupBy = in_array($range, ['7', '30']) ? 'day' : 'week';
         $format = $groupBy === 'day' ? '%Y-%m-%d' : '%Y-%u';
@@ -255,7 +255,7 @@ class AnalyticsController extends Controller
      *
      * @return array<int, array{date: string, cost: float}>
      */
-    private function getCostOverTime($baseQuery, ?Carbon $startDate, string $range): array
+    private function getCostOverTime($baseQuery, ?CarbonInterface $startDate, string $range): array
     {
         $groupBy = in_array($range, ['7', '30']) ? 'day' : 'week';
         $format = $groupBy === 'day' ? '%Y-%m-%d' : '%Y-%u';
