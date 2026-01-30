@@ -32,3 +32,4 @@ yarn-error.log
 .ai/
 .claude/settings.local.json
 .claude/RALPH_PROGRESS.md
+.claude/skills/
