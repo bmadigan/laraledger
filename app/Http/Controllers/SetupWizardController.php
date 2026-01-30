@@ -98,13 +98,16 @@ class SetupWizardController extends Controller
     {
         return Socialite::driver('github')
             ->scopes(['repo', 'read:user'])
+            ->redirectUrl(route('setup.github.callback'))
             ->redirect();
     }
 
     public function handleGitHubCallback(): RedirectResponse
     {
         try {
-            $githubUser = Socialite::driver('github')->user();
+            $githubUser = Socialite::driver('github')
+                ->redirectUrl(route('setup.github.callback'))
+                ->user();
             $user = Auth::user();
 
             if (! $user) {
@@ -115,8 +118,8 @@ class SetupWizardController extends Controller
             $user->update([
                 'github_id' => $githubUser->getId(),
                 'github_username' => $githubUser->getNickname(),
-                'github_token' => $githubUser->token,
-                'github_refresh_token' => $githubUser->refreshToken,
+                'github_token' => encrypt($githubUser->token),
+                'github_refresh_token' => $githubUser->refreshToken ? encrypt($githubUser->refreshToken) : null,
                 'github_token_expires_at' => $githubUser->expiresIn
                     ? now()->addSeconds($githubUser->expiresIn)
                     : null,
