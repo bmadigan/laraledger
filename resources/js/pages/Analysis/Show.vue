@@ -168,6 +168,28 @@ const getConfidenceLabel = (confidence: number): string => {
     return 'Low Confidence';
 };
 
+const getConfidenceExplanation = (confidence: number): { title: string; description: string; action: string } => {
+    if (confidence >= 85) {
+        return {
+            title: 'Strong recommendation',
+            description: 'The analysis found clear signals in your commits that strongly indicate this version type.',
+            action: 'Safe to accept if the changes align with your expectations.',
+        };
+    }
+    if (confidence >= 70) {
+        return {
+            title: 'Moderate recommendation',
+            description: 'The analysis found some indicators but the commit messages may be ambiguous or mixed.',
+            action: 'Review the reasoning and changes before deciding.',
+        };
+    }
+    return {
+        title: 'Uncertain recommendation',
+        description: 'The analysis couldn\'t find strong signals. Commits may lack conventional prefixes or contain mixed change types.',
+        action: 'Carefully review each change and consider adjusting the version.',
+    };
+};
+
 const getStatusBadge = computed(() => {
     switch (props.release?.status) {
         case 'accepted':
@@ -273,15 +295,15 @@ const getAnalysisSource = computed(() => {
 
                 <!-- Actions -->
                 <div v-if="isPending" class="flex gap-2">
-                    <Button variant="outline" class="text-destructive" @click="showRejectModal = true">
+                    <Button class="bg-red-600 hover:bg-red-700 text-white" @click="showRejectModal = true">
                         <XCircle class="mr-2 h-4 w-4" />
                         Reject
                     </Button>
-                    <Button variant="outline" @click="showAdjustModal = true">
+                    <Button class="bg-amber-500 hover:bg-amber-600 text-white" @click="showAdjustModal = true">
                         <Edit class="mr-2 h-4 w-4" />
                         Adjust
                     </Button>
-                    <Button @click="acceptRelease">
+                    <Button class="bg-lime-600 hover:bg-lime-700 text-white" @click="acceptRelease">
                         <CheckCircle class="mr-2 h-4 w-4" />
                         Accept
                     </Button>
@@ -324,6 +346,19 @@ const getAnalysisSource = computed(() => {
                                     {{ release.final_type }}
                                 </Badge>
                             </div>
+                        </div>
+
+                        <!-- Confidence Explanation -->
+                        <div class="max-w-xs text-right">
+                            <p class="text-sm font-medium" :class="getConfidenceColor(release.confidence)">
+                                {{ getConfidenceExplanation(release.confidence).title }}
+                            </p>
+                            <p class="text-xs text-muted-foreground mt-1">
+                                {{ getConfidenceExplanation(release.confidence).description }}
+                            </p>
+                            <p class="text-xs text-muted-foreground mt-1 italic">
+                                {{ getConfidenceExplanation(release.confidence).action }}
+                            </p>
                         </div>
                     </div>
                 </CardContent>
