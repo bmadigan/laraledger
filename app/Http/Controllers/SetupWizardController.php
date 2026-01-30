@@ -214,14 +214,16 @@ class SetupWizardController extends Controller
             $selectedRepo = collect($repos)->firstWhere('id', $validated['github_id']);
 
             if ($selectedRepo) {
-                $user->repositories()->create([
-                    'github_id' => $selectedRepo['id'],
-                    'name' => $selectedRepo['name'],
-                    'full_name' => $selectedRepo['full_name'],
-                    'description' => $selectedRepo['description'] ?? null,
-                    'default_branch' => $selectedRepo['default_branch'] ?? 'main',
-                    'is_private' => $selectedRepo['private'] ?? false,
-                ]);
+                $user->repositories()->updateOrCreate(
+                    ['github_id' => $selectedRepo['id']],
+                    [
+                        'name' => $selectedRepo['name'],
+                        'full_name' => $selectedRepo['full_name'],
+                        'description' => $selectedRepo['description'] ?? null,
+                        'default_branch' => $selectedRepo['default_branch'] ?? 'main',
+                        'is_private' => $selectedRepo['private'] ?? false,
+                    ]
+                );
             }
         }
 
