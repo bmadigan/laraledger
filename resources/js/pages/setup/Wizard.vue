@@ -130,6 +130,7 @@ const testApiKey = async () => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
             },
             body: JSON.stringify({
@@ -139,6 +140,7 @@ const testApiKey = async () => {
         });
         apiKeyTestResult.value = await response.json();
     } catch (error) {
+        console.error('API key test error:', error);
         apiKeyTestResult.value = {
             valid: false,
             message: 'Failed to test API key. Please check your connection.',
