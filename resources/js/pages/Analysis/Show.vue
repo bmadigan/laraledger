@@ -295,15 +295,15 @@ const getAnalysisSource = computed(() => {
 
                 <!-- Actions -->
                 <div v-if="isPending" class="flex gap-2">
-                    <Button class="bg-red-600 hover:bg-red-700 text-white" @click="showRejectModal = true">
+                    <Button class="bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-900/40 dark:hover:bg-red-900/60 dark:text-red-300" @click="showRejectModal = true">
                         <XCircle class="mr-2 h-4 w-4" />
                         Reject
                     </Button>
-                    <Button class="bg-amber-500 hover:bg-amber-600 text-white" @click="showAdjustModal = true">
+                    <Button class="bg-amber-100 hover:bg-amber-200 text-amber-700 dark:bg-amber-900/40 dark:hover:bg-amber-900/60 dark:text-amber-300" @click="showAdjustModal = true">
                         <Edit class="mr-2 h-4 w-4" />
                         Adjust
                     </Button>
-                    <Button class="bg-lime-600 hover:bg-lime-700 text-white" @click="acceptRelease">
+                    <Button class="bg-green-100 hover:bg-green-200 text-green-700 dark:bg-green-900/40 dark:hover:bg-green-900/60 dark:text-green-300" @click="acceptRelease">
                         <CheckCircle class="mr-2 h-4 w-4" />
                         Accept
                     </Button>
