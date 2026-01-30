@@ -20,7 +20,10 @@ import {
     Clock,
     TrendingUp,
     Target,
+    Sparkles,
+    ArrowRight,
 } from 'lucide-vue-next';
+import AnalysisController from '@/actions/App/Http/Controllers/AnalysisController';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Repository {
@@ -174,6 +177,55 @@ const getTypeVariant = (type: string): 'destructive' | 'default' | 'secondary' |
                     </CardContent>
                 </Card>
             </div>
+
+            <!-- Getting Started Banner (for new users) -->
+            <Card v-if="recentReleases.length === 0 && repositories.length > 0" class="border-primary/20 bg-primary/5">
+                <CardHeader>
+                    <div class="flex items-center gap-2">
+                        <Sparkles class="h-5 w-5 text-primary" />
+                        <CardTitle>Welcome to LaraLedger!</CardTitle>
+                    </div>
+                    <CardDescription>
+                        LaraLedger helps you analyze your commits and suggest semantic version bumps (MAJOR, MINOR, PATCH) for your releases.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div class="space-y-4">
+                        <div class="grid gap-4 md:grid-cols-3">
+                            <div class="flex items-start gap-3">
+                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">1</div>
+                                <div>
+                                    <p class="font-medium">Select a Repository</p>
+                                    <p class="text-sm text-muted-foreground">Choose from your connected GitHub repositories</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">2</div>
+                                <div>
+                                    <p class="font-medium">Analyze Commits</p>
+                                    <p class="text-sm text-muted-foreground">We'll examine commits since your last release</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">3</div>
+                                <div>
+                                    <p class="font-medium">Get Recommendations</p>
+                                    <p class="text-sm text-muted-foreground">Review suggested version bump and release notes</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex justify-center pt-2">
+                            <Link :href="AnalysisController.create(repositories[0].id).url">
+                                <Button>
+                                    <Play class="mr-2 h-4 w-4" />
+                                    Analyze Your First Release
+                                    <ArrowRight class="ml-2 h-4 w-4" />
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
             <!-- Quick Actions & Accuracy Summary -->
             <div class="grid gap-4 md:grid-cols-2">

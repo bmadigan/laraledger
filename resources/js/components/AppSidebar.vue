@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
+import { BookOpen, LayoutGrid, FolderGit2, History, BarChart3, Settings } from 'lucide-vue-next';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
@@ -14,6 +14,10 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import RepositoryController from '@/actions/App/Http/Controllers/RepositoryController';
+import ReleaseController from '@/actions/App/Http/Controllers/ReleaseController';
+import AnalyticsController from '@/actions/App/Http/Controllers/AnalyticsController';
+import LaraLedgerSettingsController from '@/actions/App/Http/Controllers/Settings/LaraLedgerSettingsController';
 import { type NavItem } from '@/types';
 import AppLogo from './AppLogo.vue';
 
@@ -23,17 +27,32 @@ const mainNavItems: NavItem[] = [
         href: dashboard(),
         icon: LayoutGrid,
     },
+    {
+        title: 'Repositories',
+        href: RepositoryController.index().url,
+        icon: FolderGit2,
+    },
+    {
+        title: 'Releases',
+        href: ReleaseController.index().url,
+        icon: History,
+    },
+    {
+        title: 'Analytics',
+        href: AnalyticsController.index().url,
+        icon: BarChart3,
+    },
 ];
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Github Repo',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: Folder,
+        title: 'Settings',
+        href: LaraLedgerSettingsController.index().url,
+        icon: Settings,
     },
     {
         title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
+        href: 'https://github.com/bmadigan/laraledger',
         icon: BookOpen,
     },
 ];
