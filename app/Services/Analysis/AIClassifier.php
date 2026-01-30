@@ -5,7 +5,7 @@ namespace App\Services\Analysis;
 use App\Models\Release;
 use App\Models\Setting;
 use Prism\Prism\Enums\Provider;
-use Prism\Prism\Prism;
+use Prism\Prism\Facades\Prism;
 
 class AIClassifier
 {
@@ -38,8 +38,7 @@ class AIClassifier
                 ->using($this->getProvider(), $this->model)
                 ->withSystemPrompt($this->getSystemPrompt())
                 ->withPrompt($prompt)
-                ->asJson()
-                ->generate();
+                ->asText();
 
             $result = json_decode($response->text, true);
 

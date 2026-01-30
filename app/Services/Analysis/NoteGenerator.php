@@ -4,7 +4,7 @@ namespace App\Services\Analysis;
 
 use App\Models\Setting;
 use Prism\Prism\Enums\Provider;
-use Prism\Prism\Prism;
+use Prism\Prism\Facades\Prism;
 
 class NoteGenerator
 {
@@ -50,7 +50,7 @@ class NoteGenerator
                 ->using($this->getProvider(), $this->model)
                 ->withSystemPrompt($this->getSystemPrompt($style))
                 ->withPrompt($prompt)
-                ->generate();
+                ->asText();
 
             return $this->formatResponse($response->text, $version, $versionType, $changes);
         } catch (\Exception $e) {

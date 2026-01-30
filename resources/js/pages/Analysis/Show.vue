@@ -80,11 +80,30 @@ const props = defineProps<{
     stages: Stage[];
 }>();
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Repositories', href: RepositoryController.index().url },
-    { title: props.repository.name, href: RepositoryController.show(props.repository.id).url },
-    { title: props.release.recommended_version, href: AnalysisController.show(props.repository.id, props.release.id).url },
-];
+const breadcrumbs = computed<BreadcrumbItem[]>(() => {
+    const repoId = props.repository?.id;
+    const releaseId = props.release?.id;
+
+    const items: BreadcrumbItem[] = [
+        { title: 'Repositories', href: '/repositories' },
+    ];
+
+    if (repoId !== undefined && repoId !== null) {
+        items.push({
+            title: props.repository?.name ?? 'Repository',
+            href: `/repositories/${repoId}`
+        });
+
+        if (releaseId !== undefined && releaseId !== null) {
+            items.push({
+                title: props.release?.recommended_version ?? 'Release',
+                href: `/repositories/${repoId}/releases/${releaseId}`
+            });
+        }
+    }
+
+    return items;
+});
 
 // Sections collapse state
 const showReasoning = ref(true);
@@ -96,8 +115,8 @@ const showCommits = ref(false);
 // Adjust modal state
 const showAdjustModal = ref(false);
 const adjustForm = useForm({
-    final_version: props.release.recommended_version,
-    final_type: props.release.recommended_type,
+    final_version: props.release?.recommended_version ?? '',
+    final_type: props.release?.recommended_type ?? '',
     reason_category: '',
     reason_details: '',
 });
@@ -150,7 +169,7 @@ const getConfidenceLabel = (confidence: number): string => {
 };
 
 const getStatusBadge = computed(() => {
-    switch (props.release.status) {
+    switch (props.release?.status) {
         case 'accepted':
             return { variant: 'default' as const, label: 'Accepted', icon: CheckCircle };
         case 'adjusted':
@@ -162,7 +181,7 @@ const getStatusBadge = computed(() => {
     }
 });
 
-const isPending = computed(() => props.release.status === 'pending');
+const isPending = computed(() => props.release?.status === 'pending');
 
 const copyNotes = () => {
     navigator.clipboard.writeText(props.release.release_notes);
@@ -218,7 +237,7 @@ const submitRejection = () => {
 };
 
 const getAnalysisSource = computed(() => {
-    const aiStage = props.stages.find(s => s.stage === 'ai_classification');
+    const aiStage = props.stages?.find(s => s.stage === 'ai_classification');
     if (aiStage?.status === 'skipped') return 'heuristic';
     if (aiStage?.status === 'success') return 'ai';
     return 'heuristic';
@@ -226,10 +245,14 @@ const getAnalysisSource = computed(() => {
 </script>
 
 <template>
-    <Head :title="`${release.recommended_version} - ${repository.name}`" />
+    <div v-if="!release?.id || !repository?.id" class="flex items-center justify-center h-screen">
+        <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+    <template v-else>
+        <Head :title="`${release.recommended_version} - ${repository.name}`" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-6 p-4 max-w-5xl">
+        <AppLayout :breadcrumbs="breadcrumbs">
+            <div class="flex h-full flex-1 flex-col gap-6 p-4 max-w-5xl">
             <!-- Header -->
             <div class="flex items-start justify-between">
                 <div>
@@ -561,6 +584,7 @@ const getAnalysisSource = computed(() => {
                     </CardContent>
                 </Card>
             </div>
-        </div>
-    </AppLayout>
+            </div>
+        </AppLayout>
+    </template>
 </template>

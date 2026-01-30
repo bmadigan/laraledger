@@ -43,11 +43,15 @@ class AnalysisService
     {
         $startTime = microtime(true);
 
-        // Create the release record
+        // Create the release record with placeholder values
+        // These will be updated with actual values in finalizeRelease()
         $this->release = $repository->releases()->create([
             'from_ref' => $fromRef,
             'to_ref' => $toRef,
             'status' => Release::STATUS_PENDING,
+            'recommended_version' => 'pending',
+            'recommended_type' => Release::TYPE_PATCH,
+            'confidence' => 0,
         ]);
 
         try {
@@ -119,7 +123,7 @@ class AnalysisService
 
         $result = $this->heuristicAnalyzer->analyze($commits, $ignoredPaths);
 
-        $this->logStage(AnalysisLog::STAGE_HEURISTIC, $stageStart, [
+        $this->logStage(AnalysisLog::STAGE_HEURISTIC_ANALYSIS, $stageStart, [
             'recommended_type' => $result['recommended_type'],
             'confidence' => $result['confidence'],
             'signal_count' => count($result['signals'] ?? []),
@@ -176,7 +180,7 @@ class AnalysisService
         } catch (\Exception $e) {
             $this->logStage(AnalysisLog::STAGE_AI_CLASSIFICATION, $stageStart, [
                 'error' => $e->getMessage(),
-            ], AnalysisLog::STATUS_FAILED);
+            ], AnalysisLog::STATUS_ERROR);
 
             return null;
         }
@@ -272,7 +276,7 @@ class AnalysisService
         if (! $this->isAIConfigured()) {
             $notes = $this->noteGenerator->generateFallback($version, $type, $changes);
 
-            $this->logStage(AnalysisLog::STAGE_GENERATE_NOTES, $stageStart, [
+            $this->logStage(AnalysisLog::STAGE_NOTE_GENERATION, $stageStart, [
                 'method' => 'fallback',
                 'reason' => 'AI provider not configured',
             ]);
@@ -285,7 +289,7 @@ class AnalysisService
                 ->setStyle($style)
                 ->generate($version, $type, $changes, $style);
 
-            $this->logStage(AnalysisLog::STAGE_GENERATE_NOTES, $stageStart, [
+            $this->logStage(AnalysisLog::STAGE_NOTE_GENERATION, $stageStart, [
                 'method' => 'ai',
                 'style' => $style,
                 'provider' => Setting::get('default_ai_provider') ?? config('laraledger.ai.generation.provider'),
@@ -296,7 +300,7 @@ class AnalysisService
             // Fall back to template generation
             $notes = $this->noteGenerator->generateFallback($version, $type, $changes);
 
-            $this->logStage(AnalysisLog::STAGE_GENERATE_NOTES, $stageStart, [
+            $this->logStage(AnalysisLog::STAGE_NOTE_GENERATION, $stageStart, [
                 'method' => 'fallback',
                 'error' => $e->getMessage(),
             ]);

@@ -406,7 +406,7 @@ const getTypeVariant = (type: string): 'destructive' | 'default' | 'secondary' |
                     <CardContent>
                         <div v-if="recentReleases.length > 0" class="space-y-3">
                             <Link
-                                v-for="release in recentReleases"
+                                v-for="release in recentReleases.filter(r => r?.id)"
                                 :key="release.id"
                                 :href="AnalysisController.show(repository.id, release.id).url"
                                 class="block p-3 rounded-lg hover:bg-muted/50 transition-colors"
