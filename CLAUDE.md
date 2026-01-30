@@ -14,12 +14,20 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - laravel/fortify (FORTIFY) - v1
 - laravel/framework (LARAVEL) - v12
 - laravel/prompts (PROMPTS) - v0
+- laravel/socialite (SOCIALITE) - v5
 - laravel/wayfinder (WAYFINDER) - v0
+- larastan/larastan (LARASTAN) - v3
 - laravel/mcp (MCP) - v0
 - laravel/pint (PINT) - v1
 - laravel/sail (SAIL) - v1
 - pestphp/pest (PEST) - v4
 - phpunit/phpunit (PHPUNIT) - v12
+- @inertiajs/vue3 (INERTIA) - v2
+- tailwindcss (TAILWINDCSS) - v4
+- vue (VUE) - v3
+- @laravel/vite-plugin-wayfinder (WAYFINDER) - v0
+- eslint (ESLINT) - v9
+- prettier (PRETTIER) - v3
 
 ## Skills Activation
 
@@ -27,7 +35,22 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 - `wayfinder-development` — Activates whenever referencing backend routes in frontend components. Use when importing from @/actions or @/routes, calling Laravel routes from TypeScript, or working with Wayfinder route functions.
 - `pest-testing` — Tests applications using the Pest 4 PHP framework. Activates when writing tests, creating unit or feature tests, adding assertions, testing Livewire components, browser testing, debugging test failures, working with datasets or mocking; or when the user mentions test, spec, TDD, expects, assertion, coverage, or needs to verify functionality works.
+- `inertia-vue-development` — Develops Inertia.js v2 Vue client-side applications. Activates when creating Vue pages, forms, or navigation; using &lt;Link&gt;, &lt;Form&gt;, useForm, or router; working with deferred props, prefetching, or polling; or when user mentions Vue with Inertia, Vue pages, Vue forms, or Vue navigation.
+- `tailwindcss-development` — Styles applications using Tailwind CSS v4 utilities. Activates when adding styles, restyling components, working with gradients, spacing, layout, flex, grid, responsive design, dark mode, colors, typography, or borders; or when the user mentions CSS, styling, classes, Tailwind, restyle, hero section, cards, buttons, or any visual/UI changes.
 - `developing-with-fortify` — Laravel Fortify headless authentication backend development. Activate when implementing authentication features including login, registration, password reset, email verification, two-factor authentication (2FA/TOTP), profile updates, headless auth, authentication scaffolding, or auth guards in Laravel applications.
+- `data-analyst` — Analyze McDougall-style fuel business data (SQLite via Laravel) to answer business questions, build KPIs, propose dashboards, and deliver actionable insights for operations leadership.
+- `filament` — Build admin panels and CRUD interfaces with Filament v5. Use this when creating resources, tables, forms, widgets, or admin dashboards.
+- `landing-page-design` — Create distinctive, conversion-focused marketing and landing pages with bold aesthetics that avoid generic &quot;AI slop&quot; design. Use for marketing sites, product launches, landing pages, and promotional content.
+- `laravel-api` — Build RESTful APIs with Eloquent API Resources, pagination, versioning, and rate limiting. Use this when creating API endpoints or transforming data for JSON responses.
+- `laravel-debug` — Debug Laravel application issues using browser logs, tinker, database queries, and systematic troubleshooting. Use this when encountering errors, unexpected behavior, or performance issues.
+- `laravel-eloquent` — Design efficient Eloquent relationships with proper eager loading, scopes, and query optimization. Use this when working with models, relationships, or database queries.
+- `laravel-feature` — Build a complete Laravel feature following TDD principles with models, migrations, factories, tests, validation, and Livewire class-based components. Use this for new CRUD features or complex business logic.
+- `laravel-quality` — Run comprehensive quality checks including Pint formatting, PHPStan analysis, and Pest tests. Use this before commits, after major changes, or when requested by user.
+- `livewire-form` — Create production-ready class-based Livewire forms with validation, loading states, error handling, and Flux UI components (light mode only). Use this for data entry, user input, and CRUD operations.
+- `prd-creator` — Create comprehensive Product Requirements Documents (PRDs) with user stories, acceptance criteria, and technical specifications. Use this when planning new features, products, or major enhancements.
+- `shadcn-ui` — Build public-facing React pages with ShadCN UI components, Inertia.js, and the Algoma Jobs theme. Use for landing pages, auth pages (login, register, password reset), and all non-admin user interfaces.
+- `skill-creator` — Guide for creating effective skills. Use this when users want to create a new skill (or update an existing skill) that extends Claude&#039;s capabilities with specialized knowledge, workflows, or tool integrations.
+- `xlsx` — Create, edit, and analyze Excel spreadsheets with formulas, formatting, data analysis, and visualization. Use when working with .xlsx files for professional documents, financial models, data analysis, or reporting.
 
 ## Conventions
 
@@ -131,6 +154,13 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 - Add useful array shape type definitions when appropriate.
 
+=== herd rules ===
+
+# Laravel Herd
+
+- The application is served by Laravel Herd and will be available at: `https?://[kebab-case-project-dir].test`. Use the `get-absolute-url` tool to generate valid URLs for the user.
+- You must not run any commands to make the site available via HTTP(S). It is always available through Laravel Herd.
+
 === tests rules ===
 
 # Test Enforcement
@@ -145,6 +175,7 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - Inertia creates fully client-side rendered SPAs without modern SPA complexity, leveraging existing server-side patterns.
 - Components live in `resources/js/Pages` (unless specified in `vite.config.js`). Use `Inertia::render()` for server-side routing instead of Blade views.
 - ALWAYS use `search-docs` tool for version-specific Inertia documentation and updated code examples.
+- IMPORTANT: Activate `inertia-vue-development` when working with Inertia Vue client-side patterns.
 
 === inertia-laravel/v2 rules ===
 
@@ -262,6 +293,21 @@ Wayfinder generates TypeScript functions for Laravel routes. Import from `@/acti
 - Do NOT delete tests without approval.
 - CRITICAL: ALWAYS use `search-docs` tool for version-specific Pest documentation and updated code examples.
 - IMPORTANT: Activate `pest-testing` every time you're working with a Pest or testing-related task.
+
+=== inertia-vue/core rules ===
+
+# Inertia + Vue
+
+Vue components must have a single root element.
+- IMPORTANT: Activate `inertia-vue-development` when working with Inertia Vue client-side patterns.
+
+=== tailwindcss/core rules ===
+
+# Tailwind CSS
+
+- Always use existing Tailwind conventions; check project patterns before adding new ones.
+- IMPORTANT: Always use `search-docs` tool for version-specific Tailwind CSS documentation and updated code examples. Never rely on training data.
+- IMPORTANT: Activate `tailwindcss-development` every time you're working with a Tailwind CSS or styling-related task.
 
 === laravel/fortify rules ===
 

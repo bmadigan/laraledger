@@ -12,6 +12,21 @@
     "skills": [
         "wayfinder-development",
         "pest-testing",
-        "developing-with-fortify"
+        "inertia-vue-development",
+        "tailwindcss-development",
+        "developing-with-fortify",
+        "data-analyst",
+        "filament",
+        "landing-page-design",
+        "laravel-api",
+        "laravel-debug",
+        "laravel-eloquent",
+        "laravel-feature",
+        "laravel-quality",
+        "livewire-form",
+        "prd-creator",
+        "shadcn-ui",
+        "skill-creator",
+        "xlsx"
     ]
 }
