@@ -45,4 +45,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('laraledger.settings.export');
     Route::delete('settings/laraledger/history', [LaraLedgerSettingsController::class, 'clearHistory'])
         ->name('laraledger.settings.clear-history');
+    Route::post('settings/laraledger/demo-data', [LaraLedgerSettingsController::class, 'loadDemoData'])
+        ->name('laraledger.settings.demo-data');
 });

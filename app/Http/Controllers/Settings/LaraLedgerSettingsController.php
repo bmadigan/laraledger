@@ -43,6 +43,7 @@ class LaraLedgerSettingsController extends Controller
                 'heuristicThreshold' => (int) Setting::get('heuristic_threshold', config('laraledger.heuristics.confidence_threshold')),
             ],
             'availableModels' => $this->getAvailableModels(),
+            'isDebugMode' => config('app.debug'),
         ]);
     }
 
@@ -200,6 +201,23 @@ class LaraLedgerSettingsController extends Controller
         \App\Models\Release::whereIn('repository_id', $repositoryIds)->delete();
 
         return back()->with('success', 'All analysis history has been cleared.');
+    }
+
+    /**
+     * Load demo data for testing purposes.
+     * Only available in debug/development mode.
+     */
+    public function loadDemoData(): RedirectResponse
+    {
+        if (! config('app.debug')) {
+            abort(403, 'Demo data loading is only available in debug mode.');
+        }
+
+        // Run the seeder with the authenticated user context
+        $seeder = new \Database\Seeders\DemoDataSeeder;
+        $seeder->run();
+
+        return back()->with('success', 'Demo data loaded successfully! Check your repositories and releases.');
     }
 
     /**

@@ -61,6 +61,13 @@ class RepositoryController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $user = Auth::user();
+
+        // If adding by full_name only (public repo), fetch details from GitHub
+        if ($request->has('full_name') && ! $request->has('github_id')) {
+            return $this->storePublicRepository($request, $user);
+        }
+
         $validated = $request->validate([
             'github_id' => ['required', 'integer'],
             'name' => ['required', 'string', 'max:255'],
@@ -69,8 +76,6 @@ class RepositoryController extends Controller
             'default_branch' => ['required', 'string', 'max:255'],
             'is_private' => ['required', 'boolean'],
         ]);
-
-        $user = Auth::user();
 
         // Check if already connected
         if ($user->repositories()->where('github_id', $validated['github_id'])->exists()) {
@@ -84,6 +89,41 @@ class RepositoryController extends Controller
 
         // Sync tags and branches
         $this->syncRepositoryData($repository);
+
+        return redirect()->route('repositories.show', $repository)
+            ->with('success', 'Repository connected successfully!');
+    }
+
+    /**
+     * Store a public repository by fetching details from GitHub.
+     */
+    private function storePublicRepository(Request $request, \App\Models\User $user): RedirectResponse
+    {
+        $validated = $request->validate([
+            'full_name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/'],
+        ]);
+
+        $githubService = app(GitHubService::class, ['user' => $user]);
+        $repoData = $githubService->getRepository($validated['full_name']);
+
+        if (! $repoData) {
+            return back()->with('error', 'Repository not found or not accessible. Make sure it exists and is public.');
+        }
+
+        // Check if already connected
+        if ($user->repositories()->where('github_id', $repoData['id'])->exists()) {
+            return back()->with('error', 'This repository is already connected.');
+        }
+
+        $repository = $user->repositories()->create([
+            'github_id' => $repoData['id'],
+            'name' => $repoData['name'],
+            'full_name' => $repoData['full_name'],
+            'description' => $repoData['description'] ?? null,
+            'default_branch' => $repoData['default_branch'],
+            'is_private' => $repoData['private'],
+            'last_synced_at' => now(),
+        ]);
 
         return redirect()->route('repositories.show', $repository)
             ->with('success', 'Repository connected successfully!');

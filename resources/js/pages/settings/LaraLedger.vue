@@ -22,6 +22,8 @@ import {
     AlertTriangle,
     Eye,
     EyeOff,
+    Database,
+    FlaskConical,
 } from 'lucide-vue-next';
 import { type BreadcrumbItem } from '@/types';
 
@@ -59,6 +61,7 @@ const props = defineProps<{
     generationProvider: ProviderInfo;
     analysisDefaults: AnalysisDefaults;
     availableModels: AvailableModels;
+    isDebugMode: boolean;
 }>();
 
 // AI Provider Form
@@ -83,6 +86,8 @@ const analysisDefaultsForm = useForm({
 const clearHistoryForm = useForm({
     confirm: '',
 });
+
+const loadingDemoData = ref(false);
 
 const showApiKey = ref(false);
 const showGenApiKey = ref(false);
@@ -157,6 +162,19 @@ const disconnectGithub = () => {
     if (confirm('Are you sure you want to disconnect GitHub? This will remove access to all repositories.')) {
         router.delete(GitHubController.disconnect().url);
     }
+};
+
+const loadDemoData = () => {
+    if (!confirm('This will create demo repositories and releases. Continue?')) {
+        return;
+    }
+
+    loadingDemoData.value = true;
+    router.post(LaraLedgerSettingsController.loadDemoData().url, {}, {
+        onFinish: () => {
+            loadingDemoData.value = false;
+        },
+    });
 };
 </script>
 
@@ -424,12 +442,30 @@ const disconnectGithub = () => {
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <Download class="h-5 w-5" />
+                        <Database class="h-5 w-5" />
                         Data Management
                     </CardTitle>
                     <CardDescription>Export your data or clear analysis history</CardDescription>
                 </CardHeader>
                 <CardContent class="space-y-6">
+                    <!-- Demo Data (Development Only) -->
+                    <div v-if="isDebugMode" class="flex items-center justify-between p-4 rounded-lg border border-dashed border-yellow-500/50 bg-yellow-50/50 dark:bg-yellow-900/10">
+                        <div class="flex items-center gap-3">
+                            <FlaskConical class="h-5 w-5 text-yellow-600" />
+                            <div>
+                                <p class="font-medium">Load Demo Data</p>
+                                <p class="text-sm text-muted-foreground">
+                                    Create sample repositories and releases for testing
+                                </p>
+                            </div>
+                        </div>
+                        <Button variant="outline" :disabled="loadingDemoData" @click="loadDemoData">
+                            <Loader2 v-if="loadingDemoData" class="mr-2 h-4 w-4 animate-spin" />
+                            <FlaskConical v-else class="mr-2 h-4 w-4" />
+                            {{ loadingDemoData ? 'Loading...' : 'Load Demo Data' }}
+                        </Button>
+                    </div>
+
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="font-medium">Export All Data</p>

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { GitBranch, Lock, Globe, Search, Check } from 'lucide-vue-next';
+import { GitBranch, Lock, Globe, Search, Check, Plus, Loader2 } from 'lucide-vue-next';
 
 interface GitHubRepository {
     id: number;
@@ -37,6 +37,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 const searchQuery = ref('');
 const selectedRepo = ref<GitHubRepository | null>(null);
 const isSubmitting = ref(false);
+
+// Public repository state
+const publicRepoName = ref('');
+const isAddingPublicRepo = ref(false);
 
 const filteredRepositories = computed(() => {
     if (!searchQuery.value) {
@@ -72,6 +76,22 @@ const connectRepository = () => {
         },
     });
 };
+
+const addPublicRepository = () => {
+    if (!publicRepoName.value.trim() || !publicRepoName.value.includes('/')) return;
+
+    isAddingPublicRepo.value = true;
+    router.post(RepositoryController.store().url, {
+        full_name: publicRepoName.value.trim(),
+    }, {
+        onFinish: () => {
+            isAddingPublicRepo.value = false;
+        },
+        onError: () => {
+            // Keep the input value so user can correct it
+        },
+    });
+};
 </script>
 
 <template>
@@ -85,6 +105,47 @@ const connectRepository = () => {
                 <p class="text-muted-foreground">
                     Select a GitHub repository to connect to LaraLedger
                 </p>
+            </div>
+
+            <!-- Add Public Repository -->
+            <Card class="border-dashed">
+                <CardHeader class="py-4">
+                    <CardTitle class="text-base flex items-center gap-2">
+                        <Globe class="h-4 w-4" />
+                        Add Public Repository
+                    </CardTitle>
+                    <CardDescription>
+                        Add any public GitHub repository by entering its full name
+                    </CardDescription>
+                </CardHeader>
+                <CardContent class="pt-0">
+                    <div class="flex gap-2">
+                        <Input
+                            v-model="publicRepoName"
+                            placeholder="owner/repository (e.g., laravel/framework)"
+                            class="flex-1"
+                            @keyup.enter="addPublicRepository"
+                        />
+                        <Button
+                            :disabled="!publicRepoName.includes('/') || isAddingPublicRepo"
+                            @click="addPublicRepository"
+                        >
+                            <Loader2 v-if="isAddingPublicRepo" class="mr-2 h-4 w-4 animate-spin" />
+                            <Plus v-else class="mr-2 h-4 w-4" />
+                            {{ isAddingPublicRepo ? 'Adding...' : 'Add Repository' }}
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <!-- Divider -->
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <span class="w-full border-t" />
+                </div>
+                <div class="relative flex justify-center text-xs uppercase">
+                    <span class="bg-background px-2 text-muted-foreground">Or select from your repositories</span>
+                </div>
             </div>
 
             <!-- Search -->
