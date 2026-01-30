@@ -106,8 +106,8 @@ class AnalyticsController extends Controller
         // Get repositories for filter
         $repositories = $user->repositories()
             ->select('id', 'name')
+            ->whereHas('releases')
             ->withCount('releases')
-            ->having('releases_count', '>', 0)
             ->get();
 
         return Inertia::render('Analytics/Dashboard', [
@@ -356,8 +356,8 @@ class AnalyticsController extends Controller
         // Get repositories for filter
         $repositories = $user->repositories()
             ->select('id', 'name')
+            ->whereHas('releases')
             ->withCount('releases')
-            ->having('releases_count', '>', 0)
             ->get();
 
         return Inertia::render('Analytics/MissedPredictions', [

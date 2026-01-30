@@ -88,11 +88,11 @@ class ReleaseController extends Controller
         // Paginate results
         $releases = $query->paginate(25)->withQueryString();
 
-        // Get repositories for filter dropdown
+        // Get repositories for filter dropdown (only those with releases)
         $repositories = $user->repositories()
             ->select('id', 'name')
+            ->whereHas('releases')
             ->withCount('releases')
-            ->having('releases_count', '>', 0)
             ->get();
 
         return Inertia::render('Releases/Index', [
