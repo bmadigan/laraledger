@@ -70,8 +70,12 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'New Analysis', href: AnalysisController.create(props.repository.id).url },
 ];
 
+// Default to branch if no tags exist
+const hasTags = props.tags.length > 0;
+const defaultFromRef = hasTags ? props.tags[0].name : (props.branches[0]?.name ?? '');
+
 const form = useForm({
-    from_ref: props.tags[0]?.name ?? '',
+    from_ref: defaultFromRef,
     to_ref: props.defaultBranch,
     force_ai: false,
     depth: 'standard',
@@ -87,7 +91,7 @@ const preview = ref<{
 } | null>(null);
 const previewError = ref<string | null>(null);
 
-const fromRefType = ref<'tag' | 'branch'>('tag');
+const fromRefType = ref<'tag' | 'branch'>(hasTags ? 'tag' : 'branch');
 const toRefType = ref<'tag' | 'branch'>('branch');
 
 const fromOptions = computed(() => {
@@ -171,6 +175,18 @@ const getTypeVariant = (type: string): 'destructive' | 'default' | 'secondary' |
                 </div>
 
                 <form @submit.prevent="startAnalysis" class="space-y-6">
+                    <!-- No Tags Notice -->
+                    <div v-if="!hasTags" class="flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900 dark:bg-yellow-950">
+                        <AlertCircle class="h-5 w-5 text-yellow-600 dark:text-yellow-500 shrink-0 mt-0.5" />
+                        <div>
+                            <p class="font-medium text-yellow-800 dark:text-yellow-200">No tags found</p>
+                            <p class="text-sm text-yellow-700 dark:text-yellow-300">
+                                This repository has no tags. Select two branches to compare instead.
+                                For accurate version analysis, consider creating git tags for your releases.
+                            </p>
+                        </div>
+                    </div>
+
                     <!-- Reference Selection -->
                     <Card>
                         <CardHeader>
