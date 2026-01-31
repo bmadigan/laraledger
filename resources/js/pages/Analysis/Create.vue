@@ -64,19 +64,32 @@ const props = defineProps<{
     defaultBranch: string;
 }>();
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Repositories', href: RepositoryController.index().url },
-    { title: props.repository.name, href: RepositoryController.show(props.repository.id).url },
-    { title: 'New Analysis', href: AnalysisController.create(props.repository.id).url },
-];
+const breadcrumbs = computed<BreadcrumbItem[]>(() => {
+    const items: BreadcrumbItem[] = [
+        { title: 'Repositories', href: '/repositories' },
+    ];
+
+    if (props.repository?.id) {
+        items.push({
+            title: props.repository.name ?? 'Repository',
+            href: `/repositories/${props.repository.id}`,
+        });
+        items.push({
+            title: 'New Analysis',
+            href: `/repositories/${props.repository.id}/analyze`,
+        });
+    }
+
+    return items;
+});
 
 // Default to branch if no tags exist
-const hasTags = props.tags.length > 0;
-const defaultFromRef = hasTags ? props.tags[0].name : (props.branches[0]?.name ?? '');
+const hasTags = computed(() => (props.tags?.length ?? 0) > 0);
+const defaultFromRef = computed(() => hasTags.value ? props.tags?.[0]?.name ?? '' : (props.branches?.[0]?.name ?? ''));
 
 const form = useForm({
-    from_ref: defaultFromRef,
-    to_ref: props.defaultBranch,
+    from_ref: defaultFromRef.value,
+    to_ref: props.defaultBranch ?? '',
     force_ai: false,
     depth: 'standard',
     note_style: 'technical',
@@ -91,7 +104,7 @@ const preview = ref<{
 } | null>(null);
 const previewError = ref<string | null>(null);
 
-const fromRefType = ref<'tag' | 'branch'>(hasTags ? 'tag' : 'branch');
+const fromRefType = ref<'tag' | 'branch'>(hasTags.value ? 'tag' : 'branch');
 const toRefType = ref<'tag' | 'branch'>('branch');
 
 const fromOptions = computed(() => {
@@ -161,10 +174,14 @@ const getTypeVariant = (type: string): 'destructive' | 'default' | 'secondary' |
 </script>
 
 <template>
-    <Head :title="`New Analysis - ${repository.name}`" />
+    <div v-if="!repository?.id" class="flex items-center justify-center h-screen">
+        <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+    <template v-else>
+        <Head :title="`New Analysis - ${repository.name}`" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 gap-6 p-4">
+        <AppLayout :breadcrumbs="breadcrumbs">
+            <div class="flex h-full flex-1 gap-6 p-4">
             <!-- Main Form -->
             <div class="flex-1 max-w-3xl space-y-6">
                 <div>
@@ -433,5 +450,6 @@ const getTypeVariant = (type: string): 'destructive' | 'default' | 'secondary' |
                 </Card>
             </div>
         </div>
-    </AppLayout>
+        </AppLayout>
+    </template>
 </template>
