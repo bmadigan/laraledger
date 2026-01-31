@@ -39,9 +39,12 @@ LaraLedger is a self-hosted Laravel application. SQLite database. Single user au
 OAuth with GitHub and select your repositories. LaraLedger:
 
 - Stores repository references
-- Remembers your tags and branches
+- **Auto-syncs your GitHub tags** for historical context
+- Remembers your branches
 - Does **NOT** push code
 - Does **NOT** auto-release
+
+When you add a repository (or click "Sync"), LaraLedger fetches all your existing tags from GitHub. You'll see them displayed on the repository page, giving you immediate context about your release history.
 
 This is **read-only intelligence**.
 
@@ -54,6 +57,19 @@ Behind the scenes:
 1. Fetches commits between refs
 2. Runs **heuristics first** (fast, free)
 3. Only calls AI **if things are unclear**
+
+The heuristic analyzer is smart about file changes:
+
+| What Changed | Recommendation | Confidence |
+|--------------|----------------|------------|
+| Docs only (README, .md files) | PATCH | ~90% |
+| Tests only | PATCH | ~85% |
+| Database migrations | MINOR | ~80% |
+| API routes or resources | MINOR | ~75% |
+| Models | MINOR | ~70% |
+| General code | PATCH | ~60% |
+
+If you use conventional commit prefixes (`feat:`, `fix:`, `docs:`), confidence goes even higher.
 
 This is important:
 - AI is not always on
@@ -78,6 +94,17 @@ Now you choose:
 | **Reject** | Wrong refs or bad analysis (rare, but logged) |
 
 If you adjust, **you must say why**. That's intentional.
+
+### Getting Better Results
+
+LaraLedger gives you tips when confidence is low. To get higher confidence scores:
+
+1. **Use conventional commit prefixes** — `feat:`, `fix:`, `docs:`, `chore:`
+2. **Mark breaking changes** — Use `feat!:` or include `BREAKING CHANGE:` in the message
+3. **Add PR labels** — Labels like `feature`, `bug`, or `breaking` are detected
+4. **Enable AI** — For repos without conventional commits, AI classification helps
+
+The system shows you exactly what signals it detected (or didn't detect) so you understand the reasoning.
 
 ### Step 5: Build Release Intelligence
 
