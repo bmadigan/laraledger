@@ -91,6 +91,64 @@ This transforms LaraLedger from an "AI opinion generator" into a **release intel
 
 ---
 
+## What Actually Happens When You Click Accept
+
+Let's be specific. No hand-waving.
+
+### 1. The Decision Gets Recorded
+
+This is the important part.
+
+LaraLedger writes a record:
+
+- Repository: `laravel/foo`
+- Previous version: `v1.4.2`
+- Recommended: MINOR → `v1.5.0`
+- Decision: Accepted
+- Confidence: 92%
+- Timestamp
+- Commit range analyzed
+
+Nothing gets pushed. Nothing gets tagged. Nothing leaves your machine.
+
+This is a **decision log**, not an action log.
+
+### 2. A Release Artifact Gets Generated
+
+Think of this as a release packet, not a deployment.
+
+LaraLedger produces:
+
+- Final version number (`v1.5.0`)
+- Finalized release notes (still editable)
+- Semver rationale (a short explanation of why)
+
+This artifact can be copied, exported, attached to a GitHub release, or just... saved for later. It's yours.
+
+### 3. The Prediction Gets Marked as Confirmed
+
+This does two things internally:
+
+1. Improves accuracy tracking
+2. Feeds future confidence scoring
+
+So if a MINOR recommendation was accepted at 92% confidence and no breaking changes get reported later, that's a data point. The system gets better at predicting *for this codebase*, not globally.
+
+### 4. Clear Next Steps Appear
+
+After accepting, there are obvious buttons:
+
+- Copy version number
+- Copy release notes (Markdown)
+- Open GitHub Releases
+- Mark as published (manual confirmation)
+
+Still no auto-tagging. No force push. No magic.
+
+**The human stays in control.** That's the whole point.
+
+---
+
 ## Why This Matters
 
 ### 1. Removes Release Anxiety
