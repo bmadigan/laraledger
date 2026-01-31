@@ -125,6 +125,9 @@ class RepositoryController extends Controller
             'last_synced_at' => now(),
         ]);
 
+        // Sync tags from GitHub
+        $this->syncRepositoryData($repository);
+
         return redirect()->route('repositories.show', $repository)
             ->with('success', 'Repository connected successfully!');
     }
@@ -136,13 +139,14 @@ class RepositoryController extends Controller
     {
         $this->authorize('view', $repository);
 
-        $repository->loadCount('releases');
+        $repository->loadCount(['releases', 'tags']);
         $repository->load(['releases' => function ($query) {
             $query->latest()->limit(10);
         }]);
 
         return Inertia::render('Repositories/Show', [
             'repository' => $repository,
+            'tags' => $repository->tags()->limit(50)->get(),
         ]);
     }
 
@@ -226,6 +230,27 @@ class RepositoryController extends Controller
                 'is_private' => $repoData['private'],
                 'last_synced_at' => now(),
             ]);
+        }
+
+        // Sync tags from GitHub
+        $this->syncTags($repository, $githubService);
+    }
+
+    /**
+     * Sync tags from GitHub.
+     */
+    private function syncTags(Repository $repository, GitHubService $githubService): void
+    {
+        $tags = $githubService->getTags($repository->full_name);
+
+        foreach ($tags as $tag) {
+            $repository->tags()->updateOrCreate(
+                ['name' => $tag['name']],
+                [
+                    'sha' => $tag['commit']['sha'] ?? '',
+                    'created_at_github' => null, // GitHub tags API doesn't return creation date
+                ]
+            );
         }
     }
 }

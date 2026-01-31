@@ -51,6 +51,14 @@ class Repository extends Model
         return $this->hasMany(Release::class);
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Tag, $this>
+     */
+    public function tags(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Tag::class)->orderByDesc('created_at_github');
+    }
+
     public function getLatestRelease(): ?Release
     {
         return $this->releases()->latest()->first();

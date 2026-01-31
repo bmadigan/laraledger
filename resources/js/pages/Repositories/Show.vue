@@ -16,6 +16,7 @@ import {
     CheckCircle,
     XCircle,
     AlertCircle,
+    Tag,
 } from 'lucide-vue-next';
 import { formatDistanceToNow, format } from 'date-fns';
 
@@ -31,6 +32,13 @@ interface Release {
     created_at: string;
 }
 
+interface GitTag {
+    id: number;
+    name: string;
+    sha: string;
+    created_at_github: string | null;
+}
+
 interface Repository {
     id: number;
     github_id: number;
@@ -43,11 +51,13 @@ interface Repository {
     is_private: boolean;
     last_synced_at: string | null;
     releases_count: number;
+    tags_count: number;
     releases: Release[];
 }
 
 const props = defineProps<{
     repository: Repository;
+    tags: GitTag[];
 }>();
 
 const breadcrumbs = computed<BreadcrumbItem[]>(() => {
@@ -189,10 +199,48 @@ const getTypeColor = (type: string) => {
                 </Card>
             </div>
 
+            <!-- GitHub Tags -->
+            <Card v-if="tags && tags.length > 0">
+                <CardHeader>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <CardTitle class="flex items-center gap-2">
+                                <Tag class="h-5 w-5" />
+                                GitHub Tags
+                            </CardTitle>
+                            <CardDescription>
+                                {{ tags.length }} tags synced from GitHub
+                            </CardDescription>
+                        </div>
+                        <Link :href="`/repositories/${repository.id}/analyze`">
+                            <Button variant="outline" size="sm">
+                                <Play class="mr-2 h-4 w-4" />
+                                Analyze Tags
+                            </Button>
+                        </Link>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <div class="flex flex-wrap gap-2">
+                        <Badge
+                            v-for="tag in tags.slice(0, 20)"
+                            :key="tag.id"
+                            variant="outline"
+                            class="font-mono text-xs"
+                        >
+                            {{ tag.name }}
+                        </Badge>
+                        <span v-if="tags.length > 20" class="text-sm text-muted-foreground self-center">
+                            +{{ tags.length - 20 }} more
+                        </span>
+                    </div>
+                </CardContent>
+            </Card>
+
             <!-- Recent Releases -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Recent Releases</CardTitle>
+                    <CardTitle>Recent Analyses</CardTitle>
                     <CardDescription>
                         The last 10 release analyses for this repository
                     </CardDescription>
