@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
     CheckCircle,
     XCircle,
@@ -316,6 +317,33 @@ const showConfidenceTips = computed(() => {
                     </Button>
                 </div>
             </div>
+
+            <!-- Decision Banner -->
+            <Alert v-if="release.status === 'accepted'" class="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/50">
+                <CheckCircle class="h-4 w-4 text-green-600 dark:text-green-400" />
+                <AlertTitle class="text-green-800 dark:text-green-200">Release Accepted</AlertTitle>
+                <AlertDescription class="text-green-700 dark:text-green-300">
+                    You accepted <strong>{{ release.final_version || release.recommended_version }}</strong> as a <strong>{{ release.final_type || release.recommended_type }}</strong> release.
+                    Copy the release notes below to create your GitHub release.
+                </AlertDescription>
+            </Alert>
+
+            <Alert v-else-if="release.status === 'adjusted'" class="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/50">
+                <Edit class="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <AlertTitle class="text-amber-800 dark:text-amber-200">Release Adjusted</AlertTitle>
+                <AlertDescription class="text-amber-700 dark:text-amber-300">
+                    You adjusted the recommendation from <strong>{{ release.recommended_version }}</strong> to <strong>{{ release.final_version }}</strong>.
+                    Copy the release notes below to create your GitHub release.
+                </AlertDescription>
+            </Alert>
+
+            <Alert v-else-if="release.status === 'rejected'" class="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/50">
+                <XCircle class="h-4 w-4 text-red-600 dark:text-red-400" />
+                <AlertTitle class="text-red-800 dark:text-red-200">Release Rejected</AlertTitle>
+                <AlertDescription class="text-red-700 dark:text-red-300">
+                    This analysis was rejected. You can run a new analysis from the repository page.
+                </AlertDescription>
+            </Alert>
 
             <!-- Confidence & Source -->
             <Card>
