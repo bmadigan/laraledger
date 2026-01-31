@@ -2,7 +2,6 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import RepositoryController from '@/actions/App/Http/Controllers/RepositoryController';
 import AnalysisController from '@/actions/App/Http/Controllers/AnalysisController';
 import { type BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -109,16 +108,16 @@ const toRefType = ref<'tag' | 'branch'>('branch');
 
 const fromOptions = computed(() => {
     if (fromRefType.value === 'tag') {
-        return props.tags.map(t => ({ value: t.name, label: t.name }));
+        return (props.tags ?? []).map(t => ({ value: t.name, label: t.name }));
     }
-    return props.branches.map(b => ({ value: b.name, label: b.name + (b.protected ? ' (Protected)' : '') }));
+    return (props.branches ?? []).map(b => ({ value: b.name, label: b.name + (b.protected ? ' (Protected)' : '') }));
 });
 
 const toOptions = computed(() => {
     if (toRefType.value === 'tag') {
-        return props.tags.map(t => ({ value: t.name, label: t.name }));
+        return (props.tags ?? []).map(t => ({ value: t.name, label: t.name }));
     }
-    return props.branches.map(b => ({ value: b.name, label: b.name + (b.protected ? ' (Protected)' : '') }));
+    return (props.branches ?? []).map(b => ({ value: b.name, label: b.name + (b.protected ? ' (Protected)' : '') }));
 });
 
 const canAnalyze = computed(() => {
@@ -398,7 +397,7 @@ const getTypeVariant = (type: string): 'destructive' | 'default' | 'secondary' |
 
                     <!-- Actions -->
                     <div class="flex justify-between">
-                        <Link :href="RepositoryController.show(repository.id).url">
+                        <Link :href="`/repositories/${repository.id}`">
                             <Button type="button" variant="outline">Cancel</Button>
                         </Link>
                         <Button
@@ -421,11 +420,11 @@ const getTypeVariant = (type: string): 'destructive' | 'default' | 'secondary' |
                         <CardDescription>Quick access to recent work</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div v-if="recentReleases.length > 0" class="space-y-3">
+                        <div v-if="recentReleases?.length > 0" class="space-y-3">
                             <Link
                                 v-for="release in recentReleases.filter(r => r?.id)"
                                 :key="release.id"
-                                :href="AnalysisController.show(repository.id, release.id).url"
+                                :href="`/repositories/${repository.id}/releases/${release.id}`"
                                 class="block p-3 rounded-lg hover:bg-muted/50 transition-colors"
                             >
                                 <div class="flex items-center justify-between mb-1">
