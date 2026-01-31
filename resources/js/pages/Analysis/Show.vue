@@ -205,8 +205,31 @@ const getStatusBadge = computed(() => {
 
 const isPending = computed(() => props.release?.status === 'pending');
 
-const copyNotes = () => {
-    navigator.clipboard.writeText(props.release.release_notes);
+const copied = ref(false);
+
+const copyNotes = async () => {
+    const text = props.release?.release_notes || '';
+
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+        } else {
+            // Fallback for non-HTTPS contexts
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+
+        copied.value = true;
+        setTimeout(() => { copied.value = false; }, 2000);
+    } catch (err) {
+        console.error('Failed to copy:', err);
+    }
 };
 
 const downloadNotes = () => {
@@ -520,9 +543,10 @@ const showConfidenceTips = computed(() => {
                     <div class="flex items-center justify-between">
                         <CardTitle>Release Notes</CardTitle>
                         <div class="flex gap-2">
-                            <Button variant="outline" size="sm" @click="copyNotes">
-                                <Copy class="h-4 w-4 mr-1" />
-                                Copy
+                            <Button variant="outline" size="sm" @click="copyNotes" :class="copied ? 'text-green-600 border-green-300' : ''">
+                                <CheckCircle v-if="copied" class="h-4 w-4 mr-1" />
+                                <Copy v-else class="h-4 w-4 mr-1" />
+                                {{ copied ? 'Copied!' : 'Copy' }}
                             </Button>
                             <Button variant="outline" size="sm" @click="downloadNotes">
                                 <Download class="h-4 w-4 mr-1" />
