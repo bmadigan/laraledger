@@ -2,8 +2,6 @@
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import RepositoryController from '@/actions/App/Http/Controllers/RepositoryController';
-import AnalysisController from '@/actions/App/Http/Controllers/AnalysisController';
 import { type BreadcrumbItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -223,7 +221,7 @@ const downloadNotes = () => {
 const regenerateNotes = async (style: string) => {
     regenerating.value = true;
     try {
-        const response = await fetch(AnalysisController.regenerateNotes(props.repository.id, props.release.id).url, {
+        const response = await fetch(`/repositories/${props.repository.id}/releases/${props.release.id}/regenerate-notes`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -240,11 +238,11 @@ const regenerateNotes = async (style: string) => {
 };
 
 const acceptRelease = () => {
-    router.post(AnalysisController.accept(props.repository.id, props.release.id).url);
+    router.post(`/repositories/${props.repository.id}/releases/${props.release.id}/accept`);
 };
 
 const submitAdjustment = () => {
-    adjustForm.post(AnalysisController.adjust(props.repository.id, props.release.id).url, {
+    adjustForm.post(`/repositories/${props.repository.id}/releases/${props.release.id}/adjust`, {
         onSuccess: () => {
             showAdjustModal.value = false;
         },
@@ -252,7 +250,7 @@ const submitAdjustment = () => {
 };
 
 const submitRejection = () => {
-    rejectForm.post(AnalysisController.reject(props.repository.id, props.release.id).url, {
+    rejectForm.post(`/repositories/${props.repository.id}/releases/${props.release.id}/reject`, {
         onSuccess: () => {
             showRejectModal.value = false;
         },
