@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import RepositoryController from '@/actions/App/Http/Controllers/RepositoryController';
-import AnalysisController from '@/actions/App/Http/Controllers/AnalysisController';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -51,19 +50,23 @@ const props = defineProps<{
     repository: Repository;
 }>();
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Repositories',
-        href: RepositoryController.index().url,
-    },
-    {
-        title: props.repository.name,
-        href: RepositoryController.show(props.repository.id).url,
-    },
-];
+const breadcrumbs = computed<BreadcrumbItem[]>(() => {
+    const items: BreadcrumbItem[] = [
+        { title: 'Repositories', href: '/repositories' },
+    ];
+
+    if (props.repository?.id) {
+        items.push({
+            title: props.repository.name ?? 'Repository',
+            href: `/repositories/${props.repository.id}`,
+        });
+    }
+
+    return items;
+});
 
 const syncRepository = () => {
-    router.post(RepositoryController.sync(props.repository.id).url);
+    router.post(`/repositories/${props.repository.id}/sync`);
 };
 
 const getStatusIcon = (status: string) => {
@@ -136,13 +139,13 @@ const getTypeColor = (type: string) => {
                         <RefreshCw class="mr-2 h-4 w-4" />
                         Sync
                     </Button>
-                    <Link :href="RepositoryController.edit(repository.id).url">
+                    <Link :href="`/repositories/${repository.id}/edit`">
                         <Button variant="outline">
                             <Settings class="mr-2 h-4 w-4" />
                             Settings
                         </Button>
                     </Link>
-                    <Link :href="AnalysisController.create(repository.id).url">
+                    <Link :href="`/repositories/${repository.id}/analyze`">
                         <Button>
                             <Play class="mr-2 h-4 w-4" />
                             New Analysis
@@ -212,7 +215,7 @@ const getTypeColor = (type: string) => {
                                     v-for="release in repository.releases"
                                     :key="release.id"
                                     class="border-b last:border-0 hover:bg-muted/50 cursor-pointer"
-                                    @click="router.visit(AnalysisController.show(repository.id, release.id).url)"
+                                    @click="router.visit(`/repositories/${repository.id}/releases/${release.id}`)"
                                 >
                                     <td class="px-4 py-3 font-mono text-sm">
                                         {{ release.version || '—' }}
@@ -267,7 +270,7 @@ const getTypeColor = (type: string) => {
                         <p class="text-muted-foreground mb-4">
                             Start a new analysis to see your release history.
                         </p>
-                        <Link :href="AnalysisController.create(repository.id).url">
+                        <Link :href="`/repositories/${repository.id}/analyze`">
                             <Button>
                                 <Play class="mr-2 h-4 w-4" />
                                 Start First Analysis
