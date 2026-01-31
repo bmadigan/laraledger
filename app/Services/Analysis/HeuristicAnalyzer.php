@@ -139,6 +139,7 @@ class HeuristicAnalyzer
             'fixes' => [],
             'other' => [],
         ];
+        $allFiles = [];
 
         foreach ($commits as $commit) {
             $commitSignals = $this->analyzeCommit($commit, $ignoredPaths);
@@ -146,6 +147,39 @@ class HeuristicAnalyzer
 
             foreach ($commitSignals['changes'] as $category => $categoryChanges) {
                 $changes[$category] = array_merge($changes[$category], $categoryChanges);
+            }
+
+            // Collect all files for aggregate analysis
+            $files = $commit['files'] ?? [];
+            foreach ($files as $file) {
+                $filename = is_array($file) ? ($file['filename'] ?? $file['path'] ?? '') : $file;
+                if ($filename && ! $this->isIgnoredPath($filename, $ignoredPaths)) {
+                    $allFiles[] = $filename;
+                }
+            }
+        }
+
+        // If no conventional commit signals found, use file-based analysis as primary
+        $hasConventionalSignals = collect($signals)->contains(fn ($s) => $s['source'] === 'conventional_commit');
+
+        if (! $hasConventionalSignals && ! empty($allFiles)) {
+            $fileBasedSignal = $this->analyzeAllFiles($allFiles, $commits);
+            if ($fileBasedSignal) {
+                $signals[] = $fileBasedSignal;
+
+                // Add to appropriate change category
+                $category = $fileBasedSignal['category'];
+                foreach ($commits as $commit) {
+                    $sha = $commit['sha'] ?? '';
+                    $message = $commit['commit']['message'] ?? $commit['message'] ?? '';
+                    if (! $this->hasChangeFromSha($changes[$category], $sha)) {
+                        $changes[$category][] = [
+                            'sha' => $sha,
+                            'message' => $this->getCommitSummary($message),
+                            'source' => 'file_analysis',
+                        ];
+                    }
+                }
             }
         }
 
@@ -155,10 +189,150 @@ class HeuristicAnalyzer
         return [
             'recommended_type' => $recommendation['type'],
             'confidence' => $recommendation['confidence'],
-            'reasoning' => $this->buildReasoning($signals, $recommendation),
+            'reasoning' => $this->buildReasoning($signals, $recommendation, $allFiles),
             'changes' => $changes,
             'signals' => $signals,
             'source' => Release::SOURCE_HEURISTIC,
+        ];
+    }
+
+    /**
+     * Analyze all files to determine version type when no conventional commits found.
+     */
+    protected function analyzeAllFiles(array $files, array $commits): ?array
+    {
+        $categories = [
+            'docs_only' => true,
+            'tests_only' => true,
+            'has_migrations' => false,
+            'has_api_changes' => false,
+            'has_model_changes' => false,
+            'has_config_changes' => false,
+        ];
+
+        $docPatterns = ['README', 'CHANGELOG', 'docs/', '.md', 'LICENSE'];
+        $testPatterns = ['tests/', 'test/', 'phpunit', '.test.', '.spec.'];
+        $migrationPatterns = ['database/migrations', 'migrations/'];
+        $apiPatterns = ['routes/api', 'Controllers/Api', 'app/Http/Resources'];
+        $modelPatterns = ['app/Models/', 'Model.php'];
+        $configPatterns = ['config/', '.env'];
+
+        foreach ($files as $file) {
+            $isDoc = false;
+            $isTest = false;
+
+            foreach ($docPatterns as $pattern) {
+                if (str_contains($file, $pattern)) {
+                    $isDoc = true;
+                    break;
+                }
+            }
+
+            foreach ($testPatterns as $pattern) {
+                if (str_contains($file, $pattern)) {
+                    $isTest = true;
+                    break;
+                }
+            }
+
+            // If file is neither doc nor test, mark those as false
+            if (! $isDoc) {
+                $categories['docs_only'] = false;
+            }
+            if (! $isTest) {
+                $categories['tests_only'] = false;
+            }
+
+            // Check for high-impact changes
+            foreach ($migrationPatterns as $pattern) {
+                if (str_contains($file, $pattern)) {
+                    $categories['has_migrations'] = true;
+                }
+            }
+
+            foreach ($apiPatterns as $pattern) {
+                if (str_contains($file, $pattern)) {
+                    $categories['has_api_changes'] = true;
+                }
+            }
+
+            foreach ($modelPatterns as $pattern) {
+                if (str_contains($file, $pattern)) {
+                    $categories['has_model_changes'] = true;
+                }
+            }
+
+            foreach ($configPatterns as $pattern) {
+                if (str_contains($file, $pattern)) {
+                    $categories['has_config_changes'] = true;
+                }
+            }
+        }
+
+        // Determine signal based on file categories
+        if ($categories['docs_only']) {
+            return [
+                'source' => 'file_analysis',
+                'type' => Release::TYPE_PATCH,
+                'category' => 'other',
+                'weight' => 0.9,
+                'detail' => 'Documentation-only changes detected',
+                'sha' => '',
+            ];
+        }
+
+        if ($categories['tests_only']) {
+            return [
+                'source' => 'file_analysis',
+                'type' => Release::TYPE_PATCH,
+                'category' => 'other',
+                'weight' => 0.85,
+                'detail' => 'Test-only changes detected',
+                'sha' => '',
+            ];
+        }
+
+        if ($categories['has_migrations']) {
+            return [
+                'source' => 'file_analysis',
+                'type' => Release::TYPE_MINOR,
+                'category' => 'features',
+                'weight' => 0.8,
+                'detail' => 'Database migration changes detected - likely new features or schema updates',
+                'sha' => '',
+            ];
+        }
+
+        if ($categories['has_api_changes']) {
+            return [
+                'source' => 'file_analysis',
+                'type' => Release::TYPE_MINOR,
+                'category' => 'features',
+                'weight' => 0.75,
+                'detail' => 'API route or resource changes detected',
+                'sha' => '',
+            ];
+        }
+
+        if ($categories['has_model_changes']) {
+            return [
+                'source' => 'file_analysis',
+                'type' => Release::TYPE_MINOR,
+                'category' => 'features',
+                'weight' => 0.7,
+                'detail' => 'Model changes detected - likely new features',
+                'sha' => '',
+            ];
+        }
+
+        // Default: general code changes
+        return [
+            'source' => 'file_analysis',
+            'type' => Release::TYPE_PATCH,
+            'category' => 'fixes',
+            'weight' => 0.6,
+            'detail' => sprintf('General code changes across %d files', count($files)),
+            'sha' => '',
         ];
     }
 
@@ -484,9 +658,13 @@ class HeuristicAnalyzer
     /**
      * Build human-readable reasoning from signals.
      */
-    protected function buildReasoning(array $signals, array $recommendation): array
+    protected function buildReasoning(array $signals, array $recommendation, array $files = []): array
     {
         $reasoning = [];
+
+        // Group signals by source
+        $conventionalSignals = array_filter($signals, fn ($s) => $s['source'] === 'conventional_commit');
+        $fileAnalysisSignals = array_filter($signals, fn ($s) => $s['source'] === 'file_analysis');
 
         // Group signals by type
         $breakingSignals = array_filter($signals, fn ($s) => $s['type'] === Release::TYPE_MAJOR);
@@ -502,25 +680,38 @@ class HeuristicAnalyzer
         }
 
         if (! empty($featureSignals)) {
+            $details = array_map(fn ($s) => $s['detail'], $featureSignals);
             $reasoning[] = sprintf(
-                'Found %d feature/enhancement signal(s)',
-                count($featureSignals)
+                'Found %d feature/enhancement signal(s): %s',
+                count($featureSignals),
+                implode(', ', array_slice($details, 0, 2))
             );
         }
 
         if (! empty($patchSignals)) {
+            $details = array_map(fn ($s) => $s['detail'], $patchSignals);
             $reasoning[] = sprintf(
-                'Found %d fix/patch signal(s)',
-                count($patchSignals)
+                'Found %d fix/patch signal(s): %s',
+                count($patchSignals),
+                implode(', ', array_slice($details, 0, 2))
             );
         }
 
+        // Add file analysis context
+        if (! empty($fileAnalysisSignals) && empty($conventionalSignals)) {
+            $reasoning[] = 'No conventional commit prefixes found - using file-based analysis.';
+        }
+
+        if (! empty($files)) {
+            $reasoning[] = sprintf('Analyzed %d file(s) across all commits.', count($files));
+        }
+
         if (empty($signals)) {
-            $reasoning[] = 'No clear version signals found in commit messages or labels. Defaulting to PATCH.';
+            $reasoning[] = 'No clear version signals found. Defaulting to PATCH with low confidence.';
         }
 
         $reasoning[] = sprintf(
-            'Confidence: %d%% (based on %d signals)',
+            'Confidence: %d%% (based on %d signal(s))',
             $recommendation['confidence'],
             count($signals)
         );
