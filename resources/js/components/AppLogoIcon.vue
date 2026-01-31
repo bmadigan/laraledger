@@ -18,18 +18,9 @@ defineProps<Props>();
         viewBox="0 0 24 24"
         :class="className"
         v-bind="$attrs"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        fill="currentColor"
     >
-        <!-- Ledger book -->
-        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-        <!-- Version lines -->
-        <path d="M8 7h6" />
-        <path d="M8 11h8" />
-        <!-- Checkmark/tag indicator -->
-        <path d="M15 15l2 2 4-4" stroke-width="2.5" />
+        <!-- Version tag shape -->
+        <path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.5L19 8l-7 3.5L5 8l7-3.5zM4 9.5l7 3.5v7l-7-3.5v-7zm16 0v7l-7 3.5v-7l7-3.5z" />
     </svg>
 </template>
