@@ -25,6 +25,7 @@ import {
     Bot,
     Cpu,
     GitCommit,
+    Lightbulb,
 } from 'lucide-vue-next';
 
 interface Repository {
@@ -264,6 +265,14 @@ const getAnalysisSource = computed(() => {
     if (aiStage?.status === 'success') return 'ai';
     return 'heuristic';
 });
+
+const hasNoSignals = computed(() => {
+    return props.release?.reasoning?.some((r: string) => r.includes('No clear version signals'));
+});
+
+const showConfidenceTips = computed(() => {
+    return (props.release?.confidence ?? 100) < 70 || hasNoSignals.value;
+});
 </script>
 
 <template>
@@ -361,6 +370,21 @@ const getAnalysisSource = computed(() => {
                             </p>
                         </div>
                     </div>
+
+                    <!-- How to improve tips -->
+                    <div v-if="showConfidenceTips" class="mt-4 pt-4 border-t border-border">
+                        <div class="flex items-start gap-3">
+                            <Lightbulb class="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
+                            <div>
+                                <p class="text-sm font-medium">How to get better results</p>
+                                <ul class="text-xs text-muted-foreground mt-2 space-y-1.5">
+                                    <li>• Use conventional commit prefixes: <code class="bg-muted px-1 py-0.5 rounded">feat:</code> <code class="bg-muted px-1 py-0.5 rounded">fix:</code> <code class="bg-muted px-1 py-0.5 rounded">docs:</code> <code class="bg-muted px-1 py-0.5 rounded">chore:</code></li>
+                                    <li>• Mark breaking changes with <code class="bg-muted px-1 py-0.5 rounded">feat!:</code> or include <code class="bg-muted px-1 py-0.5 rounded">BREAKING CHANGE:</code> in the message body</li>
+                                    <li>• Add PR labels like <code class="bg-muted px-1 py-0.5 rounded">feature</code>, <code class="bg-muted px-1 py-0.5 rounded">bug</code>, or <code class="bg-muted px-1 py-0.5 rounded">breaking</code></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
 
@@ -380,6 +404,17 @@ const getAnalysisSource = computed(() => {
                             <span>{{ reason }}</span>
                         </li>
                     </ul>
+
+                    <!-- Tip when no signals found -->
+                    <div v-if="hasNoSignals" class="mt-4 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800/50">
+                        <p class="text-sm text-amber-800 dark:text-amber-200">
+                            <strong>Why 50%?</strong> The analysis couldn't find conventional commit prefixes
+                            (like <code class="bg-amber-200/50 dark:bg-amber-800/50 px-1 py-0.5 rounded">feat:</code>,
+                            <code class="bg-amber-200/50 dark:bg-amber-800/50 px-1 py-0.5 rounded">fix:</code>,
+                            <code class="bg-amber-200/50 dark:bg-amber-800/50 px-1 py-0.5 rounded">docs:</code>) in your commit messages.
+                            Using these prefixes helps LaraLedger accurately categorize changes and increases confidence.
+                        </p>
+                    </div>
                 </CardContent>
             </Card>
 
